@@ -52,5 +52,4 @@ Imported sounds are copied to:
 
 The plugin stores imported audio inside its `.runelite` subdirectory. **Open Sounds Folder** opens a file browser rooted at that directory without launching external programs.
 
-## Development
 
