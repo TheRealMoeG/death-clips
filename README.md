@@ -54,36 +54,3 @@ The plugin stores imported audio inside its `.runelite` subdirectory. **Open Sou
 
 ## Development
 
-RuneLite currently recommends IntelliJ IDEA and Java 11 for Plugin Hub development.
-
-1. Open this repository in IntelliJ IDEA.
-2. Set the project/Gradle JVM to Java 11.
-3. Import `build.gradle` as a Gradle project.
-4. Run the Gradle `run` task.
-5. Enable **Death Clips** in the development client.
-6. Import a WAV and test Selected, Random, Shuffle, volume, and an actual player death.
-
-## Project layout
-
-```text
-DeathClipsPlugin.java       local-player death event + sidebar registration
-DeathClipsPanel.java        RuneLite sidebar UI + user instructions
-DeathSoundLibrary.java               local WAV discovery + import
-DeathSoundSelector.java              selected/random/shuffle behavior
-DeathClipsAudioPlayer.java  dependency-free WAV playback
-DeathClipsConfig.java       persisted settings
-```
-
-## Plugin Hub
-
-This repository is intended for RuneLite Plugin Hub submission and includes:
-
-- `runelite-plugin.properties`
-- 48x48 `icon.png`
-- BSD-2-Clause `LICENSE`
-- Java 11 target
-- `build=standard`
-- No third-party runtime dependencies
-- No bundled audio clips
-
-After testing, publish the repository publicly on GitHub, then submit a Plugin Hub manifest entry containing the repository URL and the full commit hash.
