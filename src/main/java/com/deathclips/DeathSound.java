@@ -38,6 +38,11 @@ final class DeathSound
         return displayName;
     }
 
+    File getFile()
+    {
+        return file;
+    }
+
     InputStream openStream() throws FileNotFoundException
     {
         return new BufferedInputStream(new FileInputStream(file));
