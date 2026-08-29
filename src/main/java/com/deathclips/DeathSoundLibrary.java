@@ -96,6 +96,29 @@ final class DeathSoundLibrary
         return destination;
     }
 
+    void deleteSound(DeathSound sound) throws IOException
+    {
+        if (sound == null)
+        {
+            throw new IOException("No sound is selected.");
+        }
+
+        File file = sound.getFile();
+        if (file == null || !file.isFile())
+        {
+            throw new IOException("The selected sound file no longer exists.");
+        }
+
+        File parent = file.getParentFile();
+        if (parent == null || !parent.equals(customSoundDirectory))
+        {
+            throw new IOException("That sound is not managed by Death Clips.");
+        }
+
+        Files.delete(file.toPath());
+        refresh();
+    }
+
     private void ensureCustomDirectory()
     {
         if (!customSoundDirectory.exists())
