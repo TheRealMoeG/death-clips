@@ -53,6 +53,7 @@ public final class DeathClipsPanel extends PluginPanel
     private final JLabel installedCount = new JLabel();
     private final JLabel statusLabel = new JLabel("Import a WAV to get started");
     private JButton testButton;
+    private JButton deleteButton;
     private boolean updating;
 
     @Inject
@@ -63,7 +64,6 @@ public final class DeathClipsPanel extends PluginPanel
         DeathClipsConfig config,
         ConfigManager configManager)
     {
-        // Use PluginPanel's native wrapper. RuneLite supplies the 225px width and scrolling.
         super();
         this.library = library;
         this.selector = selector;
@@ -265,6 +265,14 @@ public final class DeathClipsPanel extends PluginPanel
         body.add(actionRow);
         body.add(Box.createVerticalStrut(6));
 
+        deleteButton = new JButton("Delete Selected Sound");
+        deleteButton.setFocusable(false);
+        deleteButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        deleteButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        deleteButton.addActionListener(e -> deleteSelectedSound());
+        body.add(deleteButton);
+        body.add(Box.createVerticalStrut(6));
+
         JButton openFolderButton = new JButton("Open Sounds Folder");
         openFolderButton.setFocusable(false);
         openFolderButton.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -273,7 +281,7 @@ public final class DeathClipsPanel extends PluginPanel
         body.add(openFolderButton);
         body.add(Box.createVerticalStrut(6));
 
-        JLabel note = new JLabel("<html>Your sounds stay local on this PC.<br>Import WAVs or open the folder to manage them.</html>");
+        JLabel note = new JLabel("<html>Your sounds stay local on this PC.<br>Import, delete, or open the folder to manage them.</html>");
         note.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
         note.setFont(FontManager.getRunescapeSmallFont());
         note.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -523,12 +531,56 @@ public final class DeathClipsPanel extends PluginPanel
                 soundCombo.setSelectedItem(sound);
                 configManager.setConfiguration(DeathClipsConfig.GROUP, "selectedSoundId", sound.getId());
             }
+            updateModeUi();
             setStatus("Imported: " + imported.getName());
         }
         catch (IOException ex)
         {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Import failed", JOptionPane.ERROR_MESSAGE);
             setStatus("Import failed");
+        }
+    }
+
+    private void deleteSelectedSound()
+    {
+        DeathSound sound = (DeathSound) soundCombo.getSelectedItem();
+        if (sound == null)
+        {
+            setStatus("No sound selected");
+            return;
+        }
+
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            "Delete \"" + sound.getDisplayName() + "\" from Death Clips?\n\nThis removes the WAV file from your Death Clips folder.",
+            "Delete sound",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        if (result != JOptionPane.YES_OPTION)
+        {
+            return;
+        }
+
+        String deletedName = sound.getDisplayName();
+        try
+        {
+            library.deleteSound(sound);
+            selector.reset();
+            refreshFromLibrary();
+
+            DeathSound next = (DeathSound) soundCombo.getSelectedItem();
+            configManager.setConfiguration(
+                DeathClipsConfig.GROUP,
+                "selectedSoundId",
+                next == null ? "" : next.getId());
+
+            updateModeUi();
+            setStatus("Deleted: " + deletedName);
+        }
+        catch (IOException ex)
+        {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Delete failed", JOptionPane.ERROR_MESSAGE);
+            setStatus("Delete failed");
         }
     }
 
@@ -540,9 +592,6 @@ public final class DeathClipsPanel extends PluginPanel
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         chooser.setAcceptAllFileFilterUsed(true);
 
-        // RuneLite Plugin Hub guidelines permit JFileChooser for user-initiated
-        // file operations. Opening the browser at our .runelite subdirectory
-        // gives users direct access to their sound library without Desktop APIs.
         chooser.showOpenDialog(this);
         setStatus("Sounds folder browser opened");
     }
@@ -556,6 +605,10 @@ public final class DeathClipsPanel extends PluginPanel
         if (testButton != null)
         {
             testButton.setEnabled(hasSounds);
+        }
+        if (deleteButton != null)
+        {
+            deleteButton.setEnabled(hasSounds);
         }
 
         if (!hasSounds)
